@@ -27,23 +27,60 @@ const repairJson = (jsonString: string): string => {
   cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
   // 2. Check if truncated (Unterminated string/object)
-  // Simple heuristic: If it doesn't end with } or ], try to append
   if (!cleaned.endsWith('}')) {
-      // If it looks like we are inside a string, we might be in trouble, 
-      // but usually we are just missing the closing brace of the main object or array.
-      
-      // Try closing the main object if it starts with {
       if (cleaned.startsWith('{')) {
-          // If ends with a quote, maybe close the string first
           if (cleaned.endsWith('"')) {
-             cleaned += ']}'; // Guessing we are in an array step
+             cleaned += ']}'; 
           } else {
-             cleaned += ']}'; // Fallback close
+             cleaned += ']}';
           }
       }
   }
 
   return cleaned;
+};
+
+export const researchProcedure = async (query: string): Promise<{ text: string; sources: Array<{title: string, uri: string}> }> => {
+  const ai = getAiClient();
+  const prompt = `
+    Find a detailed, step-by-step surgical manual for: "${query}".
+    Format it as a standard surgical technique guide with a clear Title and numbered Steps (1, 2, 3...).
+    Include specific anatomical landmarks and actions.
+    Do not include conversational filler.
+    Limit to the most standard, widely accepted technique.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    const text = response.text || "";
+    // Extract sources from grounding metadata
+    const sources: Array<{title: string, uri: string}> = [];
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    
+    chunks.forEach(chunk => {
+        if (chunk.web?.uri) {
+            sources.push({
+                title: chunk.web.title || "Source",
+                uri: chunk.web.uri
+            });
+        }
+    });
+
+    // Deduplicate sources based on URI
+    const uniqueSources = sources.filter((v,i,a)=>a.findIndex(v2=>(v2.uri===v.uri))===i);
+
+    return { text, sources: uniqueSources };
+  } catch (e: any) {
+    console.error("Research failed:", e);
+    throw new Error(`Research failed: ${e.message}`);
+  }
 };
 
 export const estimateStepCount = async (text: string): Promise<number> => {
@@ -56,7 +93,7 @@ export const estimateStepCount = async (text: string): Promise<number> => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Reverted to standard Flash for availability
+      model: "gemini-2.5-flash", // Corrected model name
       contents: prompt,
     });
     
@@ -72,23 +109,22 @@ export const estimateStepCount = async (text: string): Promise<number> => {
 export const analyzeManual = async (text: string, targetStepCount?: number): Promise<AnalysisResponse> => {
   const ai = getAiClient();
   
-  // Strict System Instruction to prevent hallucination loops
+  // Strict System Instruction
   const systemInstruction = `
     You are a strict API endpoint that converts text into JSON.
     You DO NOT output conversational text.
-    You DO NOT repeat the input text verbatim.
     You DO NOT generate infinite loops.
     Output MUST be valid JSON matching the requested schema.
   `;
 
   const prompt = `
-    Task: Convert this surgical manual into a ${targetStepCount || '6'}-step visual storyboard.
+    Task: Convert this surgical manual into a ${targetStepCount || 'logical (4-12)'}-step visual storyboard.
     
     Constraints:
-    1. Steps: Exactly ${targetStepCount || 'logical count (4-12)'}.
-    2. Description: MAX 2 sentences. concise.
-    3. Visual Prompt: MAX 40 words. Focus on camera angle, anatomy, and tools.
-    4. NO REPETITION. Do not repeat the same phrase.
+    1. Steps: Exactly ${targetStepCount || 'logical count'}.
+    2. Description: MAX 30 words per step. Concise active voice.
+    3. Visual Prompt: MAX 30 words. Focus on camera angle, anatomy, and tools.
+    4. NO REPETITION.
     
     Manual:
     "${text.substring(0, 15000)}"
@@ -96,12 +132,12 @@ export const analyzeManual = async (text: string, targetStepCount?: number): Pro
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Standard Flash is reliable for JSON
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        maxOutputTokens: 2500, // Reduced from 4000 to prevent massive loops
+        maxOutputTokens: 2000, // Reduced limit to prevent runaways
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -132,9 +168,8 @@ export const analyzeManual = async (text: string, targetStepCount?: number): Pro
   } catch (e: any) {
     console.error("Analysis Failed:", e);
     
-    // Provide more specific error to UI
     if (e.message.includes("JSON")) {
-         throw new Error("Failed to parse AI response. The model output was malformed. Please try 'Reset Form' and try again.");
+         throw new Error("Failed to parse AI response. The model output was malformed. Please try again.");
     } else if (e.message.includes("SAFETY") || e.message.includes("blocked")) {
          throw new Error("The request was blocked by safety filters. Please remove any explicit gore from the input.");
     }
@@ -146,7 +181,6 @@ export const analyzeManual = async (text: string, targetStepCount?: number): Pro
 export const generateStepImage = async (visualPrompt: string, useProModel: boolean = true): Promise<string> => {
   const ai = getAiClient();
   
-  // "Schematic" and "Educational" keywords help avoid safety refusals for medical content
   const safePrompt = `Medical illustration, educational diagram style, clean lines, schematic anatomy, neutral colors: ${visualPrompt}`;
 
   if (useProModel) {
@@ -170,7 +204,6 @@ export const generateStepImage = async (visualPrompt: string, useProModel: boole
         }
         }
         
-        // Check for refusal
         const textPart = response.candidates?.[0]?.content?.parts?.find(p => p.text);
         if (textPart?.text && !textPart.text.includes("data:image")) {
             throw new Error(`AI Refusal: ${textPart.text}`);
@@ -181,7 +214,7 @@ export const generateStepImage = async (visualPrompt: string, useProModel: boole
     }
   }
 
-  // Fallback to gemini-2.5-flash-image
+  // Fallback
   try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -252,7 +285,6 @@ export const generateStepVideo = async (visualPrompt: string, referenceImageUrl?
   
   let attempts = [];
   
-  // Attempt 1: Image-to-Video
   if (referenceImageUrl) {
     try {
       const uri = await attemptGeneration(true);
@@ -265,7 +297,6 @@ export const generateStepVideo = async (visualPrompt: string, referenceImageUrl?
     }
   }
 
-  // Attempt 2: Text-only Video
   try {
     const uri = await attemptGeneration(false);
     const videoResponse = await fetch(`${uri}&key=${process.env.API_KEY}`);

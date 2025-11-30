@@ -35,7 +35,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
             </span>
-            Private Beta • Gemini Medical AI
+            Powered by Gemini 2.5, 3.0 & Veo
           </div>
           
           <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -80,7 +80,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               </div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Automated Storyboarding</h3>
               <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Paste any procedure text. The AI identifies key steps, writes visual prompts, and generates schematic medical illustrations for each stage.
+                Paste any procedure text. <strong>Gemini 2.5 Flash</strong> identifies key steps and prompts. Schematic illustrations are generated using <strong>Gemini 3.0 Pro</strong> (Pro mode) or <strong>Gemini 2.5 Flash Image</strong>.
               </p>
               <div className="w-full h-48 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden relative shadow-inner">
                  <div className="absolute inset-0 flex items-center justify-center text-slate-400 dark:text-slate-600 font-mono text-sm uppercase tracking-widest">
@@ -105,7 +105,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Veo AI Video</h3>
                 <p className="text-slate-300 text-sm">
-                  Animate your storyboards. Uses Google's Veo model to generate short HD video previews (1080p/720p) from your schematic images.
+                  Animate your storyboards. Uses Google's <strong>Veo 3.1</strong> model to generate short HD video previews (1080p/720p) from your schematic images.
                 </p>
               </div>
             </div>
@@ -117,7 +117,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Smart Step Analysis</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                The agent breaks down dense text into logical steps and suggests the optimal flow for visual learning.
+                Powered by **Gemini 2.5 Flash**. The agent breaks down dense text into logical steps and suggests the optimal flow for visual learning.
               </p>
             </div>
 
@@ -130,7 +130,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Audio Narration included</h3>
                   <p className="text-teal-100 mb-0 text-sm">
-                     Generate professional voiceovers for every step of the procedure automatically, perfect for accessibility and auditory learners.
+                     Uses **Gemini 2.5 Flash TTS** to generate professional voiceovers for every step of the procedure automatically, perfect for accessibility and auditory learners.
                   </p>
                </div>
                <div className="w-full md:w-1/3 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 relative z-10">
@@ -159,7 +159,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             <span className="font-bold text-slate-900 dark:text-white">SurgiMator <span className="text-[10px] uppercase font-normal ml-1 opacity-50">Private Beta</span></span>
           </div>
           <div className="text-slate-500 dark:text-slate-500 text-sm">
-            © {new Date().getFullYear()} SurgiMator AI. Built with Gemini 1.5 & Veo.
+            © {new Date().getFullYear()} SurgiMator AI. Built with Gemini 2.5, 3.0 & Veo.
           </div>
           <div className="flex gap-6 text-sm text-slate-600 dark:text-slate-400">
              <a href="#" className="hover:text-teal-700 dark:hover:text-white transition-colors">Privacy</a>

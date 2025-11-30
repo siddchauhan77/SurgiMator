@@ -25,17 +25,17 @@ const LoadingVisual = ({ type }: { type: 'image' | 'video' }) => {
 
     const videoPhases = [
       "Initializing Veo 3.1 Model...",
-      "Processing reference storyboard...",
-      "Generating motion vectors...",
-      "Rendering animation frames...",
-      "Refining lighting and texture...",
+      "Analyzing reference image...",
+      "Constructing 3D scene depth...",
+      "Rendering keyframes...",
+      "Applying motion dynamics...",
       "Encoding video stream...",
       "Finalizing output..."
     ];
 
     const phases = type === 'video' ? videoPhases : imagePhases;
     // Slower interval for video as it takes longer
-    const intervalTime = type === 'video' ? 4000 : 2000;
+    const intervalTime = type === 'video' ? 5000 : 2000;
 
     let i = 0;
     setText(phases[0]);
@@ -401,8 +401,6 @@ export const StepCard: React.FC<StepCardProps> = ({ step, onGenerate, isProMode,
               {step.imageUrl && activeView !== 'image' ? <Eye size={18} /> : <ImageIcon size={18} />}
             </button>
             
-            {/* Audio Button Removed */}
-
             {/* Video Section */}
             <div className="flex items-center gap-1">
               <div className="relative group/video">
@@ -456,8 +454,6 @@ export const StepCard: React.FC<StepCardProps> = ({ step, onGenerate, isProMode,
         <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed mb-4 flex-1">
           {step.description}
         </p>
-
-        {/* Audio Player Removed */}
         
         {/* Prompt Debug */}
         <details className="mt-4">
