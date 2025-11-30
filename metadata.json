@@ -1,0 +1,5 @@
+{
+  "name": "SurgiMator",
+  "description": "Transform surgical manuals into visual storyboards and animations using Gemini AI.",
+  "requestFramePermissions": []
+}
